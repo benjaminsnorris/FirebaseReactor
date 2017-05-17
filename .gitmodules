@@ -1,0 +1,6 @@
+[submodule "Carthage/Checkouts/Marshal"]
+	path = Carthage/Checkouts/Marshal
+	url = https://github.com/utahiosmac/Marshal.git
+[submodule "Carthage/Checkouts/Reactor"]
+	path = Carthage/Checkouts/Reactor
+	url = https://github.com/ReactorSwift/Reactor.git
