@@ -58,7 +58,7 @@
 		7059EF791ECD05C600ACD67B /* GoogleToolboxForMac.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleToolboxForMac.framework; path = Vendor/Firebase/GoogleToolboxForMac.framework; sourceTree = "<group>"; };
 		7059EF7A1ECD05C600ACD67B /* GTMSessionFetcher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTMSessionFetcher.framework; path = Vendor/Firebase/GTMSessionFetcher.framework; sourceTree = "<group>"; };
 		7059EF851ECD05D800ACD67B /* Firebase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Firebase.h; path = Vendor/Firebase/Firebase.h; sourceTree = "<group>"; };
-		7059EF871ECD05EF00ACD67B /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = Vendor/Firebase/module.modulemap; sourceTree = SOURCE_ROOT; };
+		7059EF871ECD05EF00ACD67B /* FirebaseReactor.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = FirebaseReactor.modulemap; path = Vendor/Firebase/FirebaseReactor.modulemap; sourceTree = SOURCE_ROOT; };
 		7059EF881ECD068B00ACD67B /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = usr/lib/libicucore.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -153,7 +153,7 @@
 			children = (
 				7059EF881ECD068B00ACD67B /* libicucore.tbd */,
 				7059EF851ECD05D800ACD67B /* Firebase.h */,
-				7059EF871ECD05EF00ACD67B /* module.modulemap */,
+				7059EF871ECD05EF00ACD67B /* FirebaseReactor.modulemap */,
 				7059EF711ECD05C600ACD67B /* FirebaseAnalytics.framework */,
 				7059EF721ECD05C600ACD67B /* FirebaseAuth.framework */,
 				7059EF731ECD05C600ACD67B /* FirebaseCore.framework */,
