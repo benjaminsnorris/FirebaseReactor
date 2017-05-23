@@ -39,7 +39,7 @@ public protocol FirebaseReactorAccess {
     func getUserId() -> String?
     func getUserEmailVerified() -> Bool
     func sendEmailVerification<T: State>(to user: User?, core: Core<T>)
-    func reloadCurrentUser<T: State>(core: Core<T>)
+    func reloadCurrentUser<T: State>(app: FirebaseApp, core: Core<T>)
     func logInUser<T: State>(with email: String, and password: String, core: Core<T>)
     func signUpUser<T: State>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?)
     func changeUserPassword<T: State>(to newPassword: String, core: Core<T>)
@@ -107,6 +107,39 @@ public extension FirebaseReactorAccess {
         core.fire(command: DeleteStorage(at: storageRef, completion: completion))
     }
     
+    // AUTH
+    func sendEmailVerification<T: State>(to user: User?, core: Core<T>) {
+        core.fire(command: SendEmailVerification(user: user, app: currentApp))
+    }
+    
+    func reloadCurrentUser<T: State>(app: FirebaseApp, core: Core<T>) {
+        core.fire(command: ReloadCurrentUser(app: currentApp))
+    }
+    
+    func logInUser<T: State>(with email: String, and password: String, core: Core<T>) {
+        core.fire(command: LogInUser(email: email, password: password, app: currentApp))
+    }
+    
+    func signUpUser<T: State>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?) {
+        core.fire(command: SignUpUser(email: email, password: password, app: currentApp, completion: completion))
+    }
+    
+    func changeUserPassword<T: State>(to newPassword: String, core: Core<T>) {
+        core.fire(command: ChangeUserPassword(newPassword: newPassword, app: currentApp))
+    }
+    
+    func changeUserEmail<T: State>(to email: String, core: Core<T>) {
+        core.fire(command: ChangeUserEmail(email: email, app: currentApp))
+    }
+    
+    func resetPassword<T: State>(for email: String, core: Core<T>) {
+        core.fire(command: ResetPassword(email: email, app: currentApp))
+    }
+    
+    func logOutUser<T: State>(core: Core<T>) {
+        core.fire(command: LogOutUser(app: currentApp))
+    }
+
 }
 
 
