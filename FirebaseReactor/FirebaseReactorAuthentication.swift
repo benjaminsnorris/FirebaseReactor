@@ -108,7 +108,7 @@ public struct SendEmailVerification<T: State>: Command {
             if let error = error {
                 core.fire(event: ReactorEmailVerificationError(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(event: .emailVerificationSent))
+                core.fire(event: ReactorUserAuthenticationEvent(action: .emailVerificationSent))
             }
         }
     }
@@ -222,7 +222,7 @@ public struct ChangeUserPassword<T: State>: Command {
             if let error = error {
                 core.fire(event: ReactorUserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(event: FirebaseReactorAuthenticationAction.passwordChanged))
+                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.passwordChanged))
             }
         }
     }
@@ -256,7 +256,7 @@ public struct ChangeUserEmail<T: State>: Command {
             if let error = error {
                 core.fire(event: ReactorUserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(event: FirebaseReactorAuthenticationAction.emailChanged))
+                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.emailChanged))
             }
         }
     }
@@ -284,7 +284,7 @@ public struct ResetPassword<T: State>: Command {
             if let error = error {
                 core.fire(event: ReactorUserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(event: FirebaseReactorAuthenticationAction.passwordReset))
+                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.passwordReset))
             }
         }
     }
@@ -353,10 +353,10 @@ public struct ReactorUserSignedUp: FirebaseReactorAuthenticationEvent {
 /// General event regarding user authentication
 /// - **event**: The authentication event that occurred
 public struct ReactorUserAuthenticationEvent: FirebaseReactorAuthenticationEvent {
-    public var event: FirebaseReactorAuthenticationAction
+    public var action: FirebaseReactorAuthenticationAction
     
-    public init(event: FirebaseReactorAuthenticationAction) {
-        self.event = event
+    public init(action: FirebaseReactorAuthenticationAction) {
+        self.action = action
     }
 }
 
