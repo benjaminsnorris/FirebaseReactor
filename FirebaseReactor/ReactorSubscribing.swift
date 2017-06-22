@@ -13,7 +13,7 @@ import Reactor
 /// A protocol to be adopted by sub states that hold a flag indicating whether an object
 /// has been subscribed to in Firebase or not.
 public protocol ReactorSubscribingState: State {
-    var subscribed: Bool { get }
+    var isSubscribed: Bool { get }
     associatedtype SubscribingObject: Unmarshaling, EndpointNaming
 }
 
@@ -80,7 +80,7 @@ public extension ReactorSubscribingState {
      `FQuery` functions.
      */
     public func subscribeToObjects<T: State>(_ query: DatabaseQuery, core: Core<T>) {
-        if !self.subscribed {
+        if !self.isSubscribed {
             let idKey = "id"
             let refKey = "ref"
             
@@ -155,7 +155,7 @@ public extension ReactorSubscribingState {
      - Parameter query: The query that was originally used to subscribe to events.
      */
     public func removeSubscriptions<T: State>(_ query: DatabaseQuery, core: Core<T>) {
-        if self.subscribed {
+        if self.isSubscribed {
             query.removeAllObservers()
             core.fire(event: ReactorObjectSubscribed(subscribed: false, state: core.state))
         }
