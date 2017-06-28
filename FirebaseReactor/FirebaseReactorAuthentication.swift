@@ -94,6 +94,11 @@ public struct SendEmailVerification<T: State>: Command {
     var user: User?
     var app: FirebaseApp?
     
+    public init(for user: User? = nil, app: FirebaseApp? = FirebaseApp.app()) {
+        self.user = user
+        self.app = app
+    }
+    
     public func execute(state: T, core: Core<T>) {
         let emailUser: User
         if let user = user {
@@ -272,7 +277,7 @@ public struct ResetPassword<T: State>: Command {
     var email: String
     var app: FirebaseApp?
     
-    public init(email: String, app: FirebaseApp?) {
+    public init(email: String, app: FirebaseApp? = FirebaseApp.app()) {
         self.email = email
         self.app = app
     }
@@ -297,7 +302,7 @@ public struct LogOutUser<T: State>: Command {
     
     var app: FirebaseApp?
     
-    public init(app: FirebaseApp?) {
+    public init(app: FirebaseApp? = FirebaseApp.app()) {
         self.app = app
     }
     
