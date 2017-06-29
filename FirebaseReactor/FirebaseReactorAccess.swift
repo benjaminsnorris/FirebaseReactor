@@ -109,7 +109,7 @@ public extension FirebaseReactorAccess {
     
     // AUTH
     func sendEmailVerification<T: State>(to user: User?, core: Core<T>) {
-        core.fire(command: SendEmailVerification(user: user, app: currentApp))
+        core.fire(command: SendEmailVerification(to: user, app: currentApp))
     }
     
     func reloadCurrentUser<T: State>(core: Core<T>) {
