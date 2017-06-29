@@ -12,16 +12,15 @@ import Reactor
 
 /// A protocol to be adopted by sub states that hold a flag indicating whether an object
 /// has been subscribed to in Firebase or not.
-public protocol ReactorSubscribingState: State {
+public protocol SubscribingState: State {
     var isSubscribed: Bool { get }
     associatedtype SubscribingObject: Unmarshaling, EndpointNaming
 }
 
-// FIXME: - Uncomment after ReSwift is removed
 /// Protocol for objects which have an associated endpoint name
-//public protocol EndpointNaming {
-//    static var endpointName: String { get }
-//}
+public protocol EndpointNaming {
+    static var endpointName: String { get }
+}
 
 
 /**
@@ -31,14 +30,14 @@ public protocol ReactorSubscribingState: State {
  - `MalformedData`:  The data in the snapshot could not be parsed as JSON
  */
 
-public enum ReactorFirebaseSubscriptionError: Error {
+public enum FirebaseSubscriptionError: Error {
     case noData(path: String)
     case malformedData(path: String)
 }
 
-extension ReactorFirebaseSubscriptionError: Equatable { }
+extension FirebaseSubscriptionError: Equatable { }
 
-public func ==(lhs: ReactorFirebaseSubscriptionError, rhs: ReactorFirebaseSubscriptionError) -> Bool {
+public func ==(lhs: FirebaseSubscriptionError, rhs: FirebaseSubscriptionError) -> Bool {
     switch (lhs, rhs) {
     case (.noData(_), .noData(_)):
         return true
@@ -57,7 +56,7 @@ public func ==(lhs: ReactorFirebaseSubscriptionError, rhs: ReactorFirebaseSubscr
  of that type.
  */
 
-public extension ReactorSubscribingState {
+public extension SubscribingState {
     
     typealias ObjectType = Self.SubscribingObject
     
@@ -87,63 +86,63 @@ public extension ReactorSubscribingState {
             // Additions
             query.observe(.childAdded, with: { snapshot in
                 guard snapshot.exists() && !(snapshot.value is NSNull) else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.noData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.noData(path: query.ref.description())))
                     return
                 }
                 guard var json = snapshot.value as? JSONObject else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.malformedData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.malformedData(path: query.ref.description())))
                     return
                 }
                 json[idKey] = snapshot.key
                 json[refKey] = snapshot.ref.description()
                 do {
                     let object = try ObjectType(object: json)
-                    core.fire(event: ReactorObjectAdded(object: object))
+                    core.fire(event: ObjectAdded(object: object))
                 } catch {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: error))
+                    core.fire(event: ObjectErrored<ObjectType>(error: error))
                 }
             })
             
             // Changes
             query.observe(.childChanged, with: { snapshot in
                 guard snapshot.exists() && !(snapshot.value is NSNull) else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.noData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.noData(path: query.ref.description())))
                     return
                 }
                 guard var json = snapshot.value as? JSONObject else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.malformedData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.malformedData(path: query.ref.description())))
                     return
                 }
                 json[idKey] = snapshot.key
                 json[refKey] = snapshot.ref.description()
                 do {
                     let object = try ObjectType(object: json)
-                    core.fire(event: ReactorObjectChanged(object: object))
+                    core.fire(event: ObjectChanged(object: object))
                 } catch {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: error))
+                    core.fire(event: ObjectErrored<ObjectType>(error: error))
                 }
             })
             
             // Removals
             query.observe(.childRemoved, with: { snapshot in
                 guard snapshot.exists() && !(snapshot.value is NSNull) else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.noData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.noData(path: query.ref.description())))
                     return
                 }
                 guard var json = snapshot.value as? JSONObject else {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: ReactorFirebaseSubscriptionError.malformedData(path: query.ref.description())))
+                    core.fire(event: ObjectErrored<ObjectType>(error: FirebaseSubscriptionError.malformedData(path: query.ref.description())))
                     return
                 }
                 json[idKey] = snapshot.key
                 json[refKey] = snapshot.ref.description()
                 do {
                     let object = try ObjectType(object: json)
-                    core.fire(event: ReactorObjectRemoved(object: object))
+                    core.fire(event: ObjectRemoved(object: object))
                 } catch {
-                    core.fire(event: ReactorObjectErrored<ObjectType>(error: error))
+                    core.fire(event: ObjectErrored<ObjectType>(error: error))
                 }
             })
-            core.fire(event: ReactorObjectSubscribed(subscribed: true, state: self))
+            core.fire(event: ObjectSubscribed(subscribed: true, state: self))
         }
     }
     
@@ -157,7 +156,7 @@ public extension ReactorSubscribingState {
     public func removeSubscriptions<T: State>(_ query: DatabaseQuery, core: Core<T>) {
         if self.isSubscribed {
             query.removeAllObservers()
-            core.fire(event: ReactorObjectSubscribed(subscribed: false, state: core.state))
+            core.fire(event: ObjectSubscribed(subscribed: false, state: core.state))
         }
     }
     

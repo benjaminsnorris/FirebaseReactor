@@ -29,7 +29,7 @@ public protocol FirebaseDataEvent: Event { }
  - T:       The type of object that was added.
  - object:  The actual object that was added.
  */
-public struct ReactorObjectAdded<T>: FirebaseDataEvent {
+public struct ObjectAdded<T>: FirebaseDataEvent {
     public var object: T
     public init(object: T) {
         self.object = object
@@ -43,7 +43,7 @@ public struct ReactorObjectAdded<T>: FirebaseDataEvent {
  - T:       The type of object that was changed.
  - object:  The actual object that was changed.
  */
-public struct ReactorObjectChanged<T>: FirebaseDataEvent {
+public struct ObjectChanged<T>: FirebaseDataEvent {
     public var object: T
     public init(object: T) {
         self.object = object
@@ -57,7 +57,7 @@ public struct ReactorObjectChanged<T>: FirebaseDataEvent {
  - T:       The type of object that was removed.
  - object:  The actual object that was removed.
  */
-public struct ReactorObjectRemoved<T>: FirebaseDataEvent {
+public struct ObjectRemoved<T>: FirebaseDataEvent {
     public var object: T
     public init(object: T) {
         self.object = object
@@ -71,7 +71,7 @@ public struct ReactorObjectRemoved<T>: FirebaseDataEvent {
  - T:       The type of object that produced the error
  - error:   An optional error indicating the problem that occurred
  */
-public struct ReactorObjectErrored<T>: Event, FirebaseMinorErrorEvent {
+public struct ObjectErrored<T>: Event, FirebaseMinorErrorEvent {
     public var error: Error
     public init(error: Error) {
         self.error = error
@@ -85,7 +85,7 @@ public struct ReactorObjectErrored<T>: Event, FirebaseMinorErrorEvent {
  - T:           The type of state that can be subscribed or not
  - subscribed:  Flag indicating subscription status
  */
-public struct ReactorObjectSubscribed<T>: FirebaseDataEvent {
+public struct ObjectSubscribed<T>: FirebaseDataEvent {
     public var subscribed: Bool
     public var state: T
     public init(subscribed: Bool, state: T) {
@@ -100,7 +100,7 @@ public struct ReactorObjectSubscribed<T>: FirebaseDataEvent {
  - path:     The path of the ref to the object
  - observed: Flag indicating when the object is being observed
  */
-public struct ReactorObjectObserved: FirebaseDataEvent {
+public struct ObjectObserved: FirebaseDataEvent {
     public var path: String
     public var observed: Bool
     public init(path: String, observed: Bool) {
@@ -114,7 +114,7 @@ public struct ReactorObjectObserved: FirebaseDataEvent {
  - parameter connected: Bool value indicating whether the client is connected
  to Firebase
  */
-public struct ReactorFirebaseConnectionChanged: FirebaseDataEvent {
+public struct FirebaseConnectionChanged: FirebaseDataEvent {
     public var connected: Bool
     public init(connected: Bool) {
         self.connected = connected

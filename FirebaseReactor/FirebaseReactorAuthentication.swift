@@ -11,7 +11,7 @@ import Reactor
 import Marshal
 
 /// Empty protocol to help categorize events
-public protocol FirebaseReactorAuthenticationEvent: Event { }
+public protocol FirebaseAuthenticationEvent: Event { }
 
 /**
  An error that occurred authenticating with Firebase.
@@ -20,7 +20,7 @@ public protocol FirebaseReactorAuthenticationEvent: Event { }
  - `SignUpFailedLogIn`:     The user was signed up, but could not be logged in
  - `CurrentUserNotFound`:   The data for the current user could not be found
  */
-public enum FirebaseReactorAuthenticationError: Error {
+public enum FirebaseAuthenticationError: Error {
     case logInMissingUserId
     case signUpFailedLogIn
     case currentUserNotFound
@@ -34,7 +34,7 @@ public enum FirebaseReactorAuthenticationError: Error {
  - `PasswordReset`:     The user was sent a reset password email
  - `EmailVerificationSent`: The user was an email confirmation email
  */
-public enum FirebaseReactorAuthenticationAction {
+public enum FirebaseAuthenticationAction {
     case passwordChanged
     case emailChanged
     case passwordReset
@@ -75,9 +75,9 @@ public struct ReloadCurrentUser<T: State>: Command {
         guard let user = auth.currentUser else { return }
         user.reload { error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserIdentified(userId: user.uid, emailVerified: user.isEmailVerified))
+                core.fire(event: UserIdentified(userId: user.uid, emailVerified: user.isEmailVerified))
             }
         }
     }
@@ -111,9 +111,9 @@ public struct SendEmailVerification<T: State>: Command {
         }
         emailUser.sendEmailVerification { error in
             if let error = error {
-                core.fire(event: ReactorEmailVerificationError(error: error))
+                core.fire(event: EmailVerificationError(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(action: .emailVerificationSent))
+                core.fire(event: UserAuthenticationEvent(action: .emailVerificationSent))
             }
         }
     }
@@ -145,11 +145,11 @@ public struct LogInUser<T: State>: Command {
         let auth = Auth.auth(app: app)
         auth.signIn(withEmail: email, password: password) { user, error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
             } else if let user = user {
-                core.fire(event: ReactorUserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
+                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
             } else {
-                core.fire(event: ReactorUserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
+                core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
             }
         }
     }
@@ -183,17 +183,17 @@ public struct SignUpUser<T: State>: Command {
         let auth = Auth.auth(app: app)
         auth.createUser(withEmail: email, password: password) { user, error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
                 self.completion?(nil)
             } else if let user = user {
-                core.fire(event: ReactorUserSignedUp(userId: user.uid, email: self.email))
+                core.fire(event: UserSignedUp(userId: user.uid, email: self.email))
                 if let completion = self.completion {
                     completion(user.uid)
                 } else {
-                    core.fire(event: ReactorUserLoggedIn(userId: user.uid, email: self.email))
+                    core.fire(event: UserLoggedIn(userId: user.uid, email: self.email))
                 }
             } else {
-                core.fire(event: ReactorUserAuthFailed(error: FirebaseAuthenticationError.signUpFailedLogIn))
+                core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.signUpFailedLogIn))
                 self.completion?(nil)
             }
         }
@@ -220,14 +220,14 @@ public struct ChangeUserPassword<T: State>: Command {
         guard let app = app else { return }
         let auth = Auth.auth(app: app)
         guard let user = auth.currentUser else {
-            core.fire(event: ReactorUserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
+            core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
             return
         }
         user.updatePassword(to: newPassword) { error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.passwordChanged))
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.passwordChanged))
             }
         }
     }
@@ -254,14 +254,14 @@ public struct ChangeUserEmail<T: State>: Command {
         guard let app = app else { return }
         let auth = Auth.auth(app: app)
         guard let user = auth.currentUser else {
-            core.fire(event: ReactorUserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
+            core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
             return
         }
         user.updateEmail(to: email) { error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.emailChanged))
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.emailChanged))
             }
         }
     }
@@ -287,9 +287,9 @@ public struct ResetPassword<T: State>: Command {
         let auth = Auth.auth(app: app)
         auth.sendPasswordReset(withEmail: email) { error in
             if let error = error {
-                core.fire(event: ReactorUserAuthFailed(error: error))
+                core.fire(event: UserAuthFailed(error: error))
             } else {
-                core.fire(event: ReactorUserAuthenticationEvent(action: FirebaseReactorAuthenticationAction.passwordReset))
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.passwordReset))
             }
         }
     }
@@ -311,9 +311,9 @@ public struct LogOutUser<T: State>: Command {
             guard let app = app else { return }
             let auth = Auth.auth(app: app)
             try auth.signOut()
-            core.fire(event: ReactorUserLoggedOut())
+            core.fire(event: UserLoggedOut())
         } catch {
-            core.fire(event: ReactorUserAuthFailed(error: error))
+            core.fire(event: UserAuthFailed(error: error))
         }
     }
     
@@ -328,7 +328,7 @@ public struct LogOutUser<T: State>: Command {
  - **emailVerified**: Status of user’s email verification
  - **email**: Email address of user
  */
-public struct ReactorUserLoggedIn: FirebaseReactorAuthenticationEvent {
+public struct UserLoggedIn: FirebaseAuthenticationEvent {
     public var userId: String
     public var emailVerified: Bool
     public var email: String
@@ -345,7 +345,7 @@ public struct ReactorUserLoggedIn: FirebaseReactorAuthenticationEvent {
  - **userId**: The id of the user
  - **email**: Email address of user
  */
-public struct ReactorUserSignedUp: FirebaseReactorAuthenticationEvent {
+public struct UserSignedUp: FirebaseAuthenticationEvent {
     public var userId: String
     public var email: String
     
@@ -357,17 +357,17 @@ public struct ReactorUserSignedUp: FirebaseReactorAuthenticationEvent {
 
 /// General event regarding user authentication
 /// - **event**: The authentication event that occurred
-public struct ReactorUserAuthenticationEvent: FirebaseReactorAuthenticationEvent {
-    public var action: FirebaseReactorAuthenticationAction
+public struct UserAuthenticationEvent: FirebaseAuthenticationEvent {
+    public var action: FirebaseAuthenticationAction
     
-    public init(action: FirebaseReactorAuthenticationAction) {
+    public init(action: FirebaseAuthenticationAction) {
         self.action = action
     }
 }
 
 /// Event indicating that a failure occurred during authentication.
 /// - **error**: The error that produced the failure
-public struct ReactorUserAuthFailed: FirebaseSeriousErrorEvent {
+public struct UserAuthFailed: FirebaseSeriousErrorEvent {
     public var error: Error
     
     public init(error: Error) {
@@ -380,7 +380,7 @@ public struct ReactorUserAuthFailed: FirebaseSeriousErrorEvent {
  - **userId**: The id of the authenticated user
  - **emailVerified**: Indicating if the user's email is verified
  */
-public struct ReactorUserIdentified: FirebaseReactorAuthenticationEvent {
+public struct UserIdentified: FirebaseAuthenticationEvent {
     public var userId: String
     public var emailVerified: Bool
     public init(userId: String, emailVerified: Bool = false) {
@@ -390,13 +390,13 @@ public struct ReactorUserIdentified: FirebaseReactorAuthenticationEvent {
 }
 
 /// Event indicating that the user has been unauthenticated.
-public struct ReactorUserLoggedOut: FirebaseReactorAuthenticationEvent {
+public struct UserLoggedOut: FirebaseAuthenticationEvent {
     public init() { }
 }
 
 /// Event indication an error when sending email verification.
 /// - **error**: The error that occurred
-public struct ReactorEmailVerificationError: FirebaseMinorErrorEvent {
+public struct EmailVerificationError: FirebaseMinorErrorEvent {
     public var error: Error
     
     public init(error: Error) {

@@ -257,7 +257,7 @@ public struct ObserveObject<T: State>: Command {
     public func execute(state: T, core: Core<T>) {
         ref.observe(.value, with: { snapshot in
             self.completion(snapshot.jsonValue)
-            core.fire(event: ReactorObjectObserved(path: self.ref.description(), observed: true))
+            core.fire(event: ObjectObserved(path: self.ref.description(), observed: true))
         })
     }
     
@@ -273,7 +273,7 @@ public struct StopObservingObject<T: State>: Command {
     
     public func execute(state: T, core: Core<T>) {
         ref.removeAllObservers()
-        core.fire(event: ReactorObjectObserved(path: ref.description(), observed: false))
+        core.fire(event: ObjectObserved(path: ref.description(), observed: false))
     }
     
 }
@@ -313,7 +313,7 @@ public struct MonitorConnection<T: State>: Command {
         let connectedRef = self.rootRef.child(".info/connected")
         connectedRef.observe(.value, with: { snapshot in
             guard let connected = snapshot.value as? Bool else { return }
-            core.fire(event: ReactorFirebaseConnectionChanged(connected: connected))
+            core.fire(event: FirebaseConnectionChanged(connected: connected))
         })
     }
     
