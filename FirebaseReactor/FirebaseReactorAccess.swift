@@ -30,8 +30,8 @@ public protocol FirebaseReactorAccess {
     
     func monitorConnection<T: State>(core: Core<T>)
     func stopMonitoringConnection<T: State>(core: Core<T>)
-    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
-    func upload<T: State>(from url: URL, to storageRef: StorageReference, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
+    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
+    func upload<T: State>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
     func delete<T: State>(at storageRef: StorageReference, core: Core<T>, completion: @escaping (Error?) -> Void)
 
     // MARK: Overridable authentication functions
@@ -97,11 +97,13 @@ public extension FirebaseReactorAccess {
         core.fire(command: StopMonitorConnection(rootRef: ref))
     }
     
-    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+        guard let storageRef = storageRef else { completion(nil, nil, nil); return }
         core.fire(command: UploadData(data, contentType: contentType, to: storageRef, completion: completion))
     }
     
-    func upload<T: State>(from url: URL, to storageRef: StorageReference, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+    func upload<T: State>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+        guard let storageRef = storageRef else { completion(nil, nil, nil); return }
      core.fire(command: UploadURL(url, to: storageRef, completion: completion))
     }
     
