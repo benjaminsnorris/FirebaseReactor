@@ -38,13 +38,13 @@ public protocol FirebaseReactorAccess {
 
     func getUserId() -> String?
     func getUserEmailVerified() -> Bool
-    func sendEmailVerification<T: State>(to user: User?, core: Core<T>)
+    func sendEmailVerification<T: State>(to user: User?, app: FirebaseApp?, core: Core<T>)
     func reloadCurrentUser<T: State>(core: Core<T>)
     func logInUser<T: State>(with email: String, and password: String, core: Core<T>)
     func signUpUser<T: State>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?)
     func changeUserPassword<T: State>(to newPassword: String, core: Core<T>)
     func changeUserEmail<T: State>(to email: String, core: Core<T>)
-    func resetPassword<T: State>(for email: String, core: Core<T>)
+    func resetPassword<T: State>(for email: String, app: FirebaseApp?, core: Core<T>)
     func logOutUser<T: State>(core: Core<T>)
 }
 
@@ -406,8 +406,9 @@ public extension FirebaseReactorAccess {
         return user.isEmailVerified
     }
     
-    func sendEmailVerification<T: State>(to user: User?, core: Core<T>) {
-        core.fire(command: SendEmailVerification(for: user, app: currentApp))
+    func sendEmailVerification<T: State>(to user: User?, app: FirebaseApp?, core: Core<T>) {
+        let app = app ?? currentApp
+        core.fire(command: SendEmailVerification(for: user, app: app))
     }
     
     func reloadCurrentUser<T: State>(core: Core<T>) {
@@ -430,8 +431,9 @@ public extension FirebaseReactorAccess {
         core.fire(command: ChangeUserEmail(email: email, app: currentApp))
     }
     
-    func resetPassword<T: State>(for email: String, core: Core<T>) {
-        core.fire(command: ResetPassword(email: email, app: currentApp))
+    func resetPassword<T: State>(for email: String, app: FirebaseApp?, core: Core<T>) {
+        let app = app ?? currentApp
+        core.fire(command: ResetPassword(email: email, app: app))
     }
     
     func logOutUser<T: State>(core: Core<T>) {
