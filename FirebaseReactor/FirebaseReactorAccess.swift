@@ -34,7 +34,7 @@ public protocol FirebaseReactorAccess {
     func upload<T: State>(from url: URL, to storageRef: StorageReference, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
     func delete<T: State>(at storageRef: StorageReference, core: Core<T>, completion: @escaping (Error?) -> Void)
 
-    // MARK: - Overridable authentication functions
+    // MARK: Overridable authentication functions
 
     func getUserId() -> String?
     func getUserEmailVerified() -> Bool
@@ -48,6 +48,8 @@ public protocol FirebaseReactorAccess {
     func logOutUser<T: State>(core: Core<T>)
 }
 
+
+// MARK: - Default implementation of protocol functions
 
 public extension FirebaseReactorAccess {
     
@@ -107,7 +109,303 @@ public extension FirebaseReactorAccess {
         core.fire(command: DeleteStorage(at: storageRef, completion: completion))
     }
     
-    // AUTH
+}
+
+
+// MARK: - Commands used in protocol functions
+
+private struct CreateObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    var createNewChildId: Bool
+    var removeId: Bool
+    var parameters: JSONObject
+    
+    init(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject) {
+        self.ref = ref
+        self.createNewChildId = createNewChildId
+        self.removeId = removeId
+        self.parameters = parameters
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        let finalRef = createNewChildId ? ref.childByAutoId() : ref
+        var parameters = self.parameters
+        if removeId {
+            parameters.removeValue(forKey: "id")
+        }
+        finalRef.setValue(parameters)
+    }
+    
+}
+
+private struct UpdateObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    var parameters: JSONObject
+    
+    init(at ref: DatabaseReference, parameters: JSONObject) {
+        self.ref = ref
+        self.parameters = parameters
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        recursivelyUpdate(ref, parameters: parameters)
+    }
+    
+    func recursivelyUpdate(_ ref: DatabaseReference, parameters: JSONObject) {
+        var result = JSONObject()
+        for (key, value) in parameters {
+            if let object = value as? JSONObject {
+                recursivelyUpdate(ref.child(key), parameters: object)
+            } else {
+                result[key] = value
+            }
+        }
+        ref.updateChildValues(result)
+    }
+    
+}
+
+private struct UpdateObjectDirectly<T: State>: Command {
+    
+    var ref: DatabaseReference
+    var parameters: JSONObject
+    
+    init(at ref: DatabaseReference, parameters: JSONObject) {
+        self.ref = ref
+        self.parameters = parameters
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.updateChildValues(parameters)
+    }
+    
+}
+
+private struct RemoveObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    
+    init(at ref: DatabaseReference) {
+        self.ref = ref
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.removeValue()
+    }
+    
+}
+
+private struct GetObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    var completion: ((JSONObject?) -> Void)
+    
+    init(at ref: DatabaseReference, completion: @escaping ((JSONObject?) -> Void)) {
+        self.ref = ref
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.observeSingleEvent(of: .value) { snapshot in
+            self.completion(snapshot.jsonValue)
+        }
+    }
+    
+}
+
+private struct ObserveObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    var completion: ((JSONObject?) -> Void)
+    
+    init(at ref: DatabaseReference, completion: @escaping ((JSONObject?) -> Void)) {
+        self.ref = ref
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.observe(.value, with: { snapshot in
+            self.completion(snapshot.jsonValue)
+            core.fire(event: ObjectObserved(path: self.ref.description(), observed: true))
+        })
+    }
+    
+}
+
+private struct StopObservingObject<T: State>: Command {
+    
+    var ref: DatabaseReference
+    
+    init(at ref: DatabaseReference) {
+        self.ref = ref
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.removeAllObservers()
+        core.fire(event: ObjectObserved(path: ref.description(), observed: false))
+    }
+    
+}
+
+private struct Search<T: State>: Command {
+    
+    var baseQuery: DatabaseQuery
+    var key: String
+    var value: String
+    var completion: ((JSONObject?) -> Void)
+    
+    init(with query: DatabaseQuery, key: String, value: String, completion: @escaping ((JSONObject?) -> Void)) {
+        self.baseQuery = query
+        self.key = key
+        self.value = value
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        let query = baseQuery.queryOrdered(byChild: key).queryEqual(toValue: value)
+        query.observeSingleEvent(of: .value, with: { snapshot in
+            self.completion(snapshot.jsonValue)
+        })
+    }
+    
+}
+
+private struct MonitorConnection<T: State>: Command {
+    
+    var rootRef: DatabaseReference
+    
+    init(rootRef: DatabaseReference) {
+        self.rootRef = rootRef
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        let connectedRef = self.rootRef.child(".info/connected")
+        connectedRef.observe(.value, with: { snapshot in
+            guard let connected = snapshot.value as? Bool else { return }
+            core.fire(event: FirebaseConnectionChanged(connected: connected))
+        })
+    }
+    
+}
+
+private struct StopMonitorConnection<T: State>: Command {
+    
+    var rootRef: DatabaseReference
+    
+    init(rootRef: DatabaseReference) {
+        self.rootRef = rootRef
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        let connectedRef = self.rootRef.child(".info/connected")
+        connectedRef.removeAllObservers()
+    }
+    
+}
+
+private struct UploadData<T: State>: Command {
+    
+    var data: Data
+    var contentType: String
+    var storageRef: StorageReference
+    var completion: ((String?, URL?, Error?) -> Void)
+    
+    init(_ data: Data, contentType: String, to ref: StorageReference, completion: @escaping ((String?, URL?, Error?) -> Void)) {
+        self.data = data
+        self.contentType = contentType
+        self.storageRef = ref
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        let metadata = StorageMetadata()
+        metadata.contentType = contentType
+        storageRef.putData(data, metadata: metadata) { metadata, error in
+            self.completion(metadata?.name, metadata?.downloadURL(), error)
+        }
+    }
+    
+}
+
+private struct UploadURL<T: State>: Command {
+    
+    var url: URL
+    var ref: StorageReference
+    var completion: ((String?, URL?, Error?) -> Void)
+    
+    init(_ url: URL, to ref: StorageReference, completion: @escaping ((String?, URL?, Error?) -> Void)) {
+        self.url = url
+        self.ref = ref
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        ref.putFile(from: url, metadata: nil) { metadata, error in
+            self.completion(metadata?.name, metadata?.downloadURL(), error)
+        }
+    }
+    
+}
+
+private struct DeleteStorage<T: State>: Command {
+    
+    var storageRef: StorageReference
+    var completion: ((Error?) -> Void)
+    
+    init(at ref: StorageReference, completion: @escaping ((Error?) -> Void)) {
+        self.storageRef = ref
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        storageRef.delete { error in
+            self.completion(error)
+        }
+    }
+    
+}
+
+extension DataSnapshot {
+    
+    var jsonValue: JSONObject? {
+        guard self.exists() && !(self.value is NSNull) else { return nil }
+        if var json = self.value as? JSONObject {
+            json["id"] = self.key
+            return json
+        } else if let value = self.value {
+            return [self.key: value]
+        } else {
+            return nil
+        }
+    }
+    
+}
+
+
+// MARK: - Default implementation of auth functions
+
+public extension FirebaseReactorAccess {
+    
+    /// Attempts to retrieve the user's authentication id. If successful, it is returned.
+    /// - returns: The user's authentication id, or nil if not authenticated
+    func getUserId() -> String? {
+        guard let currentApp = currentApp else { return nil}
+        let auth = Auth.auth(app: currentApp)
+        guard let user = auth.currentUser else { return nil }
+        return user.uid
+    }
+    
+    /// Attempts to retrieve user's email verified status.
+    /// - returns: `true` if email has been verified, otherwise `false`.
+    func getUserEmailVerified() -> Bool {
+        guard let currentApp = currentApp else { return false }
+        let auth = Auth.auth(app: currentApp)
+        guard let user = auth.currentUser else { return false }
+        return user.isEmailVerified
+    }
+    
     func sendEmailVerification<T: State>(to user: User?, core: Core<T>) {
         core.fire(command: SendEmailVerification(for: user, app: currentApp))
     }
@@ -139,275 +437,263 @@ public extension FirebaseReactorAccess {
     func logOutUser<T: State>(core: Core<T>) {
         core.fire(command: LogOutUser(app: currentApp))
     }
-
-}
-
-
-public struct CreateObject<T: State>: Command {
-    
-    public var ref: DatabaseReference
-    public var createNewChildId: Bool
-    public var removeId: Bool
-    public var parameters: JSONObject
-    
-    public init(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject) {
-        self.ref = ref
-        self.createNewChildId = createNewChildId
-        self.removeId = removeId
-        self.parameters = parameters
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        let finalRef = createNewChildId ? ref.childByAutoId() : ref
-        var parameters = self.parameters
-        if removeId {
-            parameters.removeValue(forKey: "id")
-        }
-        finalRef.setValue(parameters)
-    }
     
 }
 
-public struct UpdateObject<T: State>: Command {
+
+// MARK: - Commands used in authentication functions
+
+/// Reloads the current user object. This is useful for checking whether `emailVerified` is now true.
+/// - **app**: `FirebaseApp` - The current FirebaseApp
+private struct ReloadCurrentUser<T: State>: Command {
     
-    public var ref: DatabaseReference
-    public var parameters: JSONObject
+    var app: FirebaseApp?
     
-    public init(at ref: DatabaseReference, parameters: JSONObject) {
-        self.ref = ref
-        self.parameters = parameters
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        recursivelyUpdate(ref, parameters: parameters)
-    }
-    
-    func recursivelyUpdate(_ ref: DatabaseReference, parameters: JSONObject) {
-        var result = JSONObject()
-        for (key, value) in parameters {
-            if let object = value as? JSONObject {
-                recursivelyUpdate(ref.child(key), parameters: object)
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        guard let user = auth.currentUser else { return }
+        user.reload { error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
             } else {
-                result[key] = value
+                core.fire(event: UserIdentified(userId: user.uid, emailVerified: user.isEmailVerified))
             }
         }
-        ref.updateChildValues(result)
     }
     
 }
 
-public struct UpdateObjectDirectly<T: State>: Command {
+/**
+ Sends verification email to specified user, or current user if not specified.
+ - **user**: `User` - User for which the email will be sent if not the current user
+ - **app**: `FirebaseApp` - The current FirebaseApp
+ */
+private struct SendEmailVerification<T: State>: Command {
     
-    public var ref: DatabaseReference
-    public var parameters: JSONObject
+    var user: User?
+    var app: FirebaseApp?
     
-    public init(at ref: DatabaseReference, parameters: JSONObject) {
-        self.ref = ref
-        self.parameters = parameters
+    init(for user: User? = nil, app: FirebaseApp? = FirebaseApp.app()) {
+        self.user = user
+        self.app = app
     }
     
-    public func execute(state: T, core: Core<T>) {
-        ref.updateChildValues(parameters)
-    }
-    
-}
-
-public struct RemoveObject<T: State>: Command {
-    
-    public var ref: DatabaseReference
-    
-    public init(at ref: DatabaseReference) {
-        self.ref = ref
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        ref.removeValue()
-    }
-    
-}
-
-public struct GetObject<T: State>: Command {
-    
-    public var ref: DatabaseReference
-    public var completion: ((JSONObject?) -> Void)
-    
-    public init(at ref: DatabaseReference, completion: @escaping ((JSONObject?) -> Void)) {
-        self.ref = ref
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        ref.observeSingleEvent(of: .value) { snapshot in
-            self.completion(snapshot.jsonValue)
-        }
-    }
-    
-}
-
-public struct ObserveObject<T: State>: Command {
-    
-    public var ref: DatabaseReference
-    public var completion: ((JSONObject?) -> Void)
-    
-    public init(at ref: DatabaseReference, completion: @escaping ((JSONObject?) -> Void)) {
-        self.ref = ref
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        ref.observe(.value, with: { snapshot in
-            self.completion(snapshot.jsonValue)
-            core.fire(event: ObjectObserved(path: self.ref.description(), observed: true))
-        })
-    }
-    
-}
-
-public struct StopObservingObject<T: State>: Command {
-    
-    public var ref: DatabaseReference
-    
-    public init(at ref: DatabaseReference) {
-        self.ref = ref
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        ref.removeAllObservers()
-        core.fire(event: ObjectObserved(path: ref.description(), observed: false))
-    }
-    
-}
-
-public struct Search<T: State>: Command {
-    
-    public var baseQuery: DatabaseQuery
-    public var key: String
-    public var value: String
-    public var completion: ((JSONObject?) -> Void)
-    
-    public init(with query: DatabaseQuery, key: String, value: String, completion: @escaping ((JSONObject?) -> Void)) {
-        self.baseQuery = query
-        self.key = key
-        self.value = value
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        let query = baseQuery.queryOrdered(byChild: key).queryEqual(toValue: value)
-        query.observeSingleEvent(of: .value, with: { snapshot in
-            self.completion(snapshot.jsonValue)
-        })
-    }
-    
-}
-
-public struct MonitorConnection<T: State>: Command {
-    
-    public var rootRef: DatabaseReference
-    
-    public init(rootRef: DatabaseReference) {
-        self.rootRef = rootRef
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        let connectedRef = self.rootRef.child(".info/connected")
-        connectedRef.observe(.value, with: { snapshot in
-            guard let connected = snapshot.value as? Bool else { return }
-            core.fire(event: FirebaseConnectionChanged(connected: connected))
-        })
-    }
-    
-}
-
-public struct StopMonitorConnection<T: State>: Command {
-    
-    public var rootRef: DatabaseReference
-    
-    public init(rootRef: DatabaseReference) {
-        self.rootRef = rootRef
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        let connectedRef = self.rootRef.child(".info/connected")
-        connectedRef.removeAllObservers()
-    }
-    
-}
-
-public struct UploadData<T: State>: Command {
-    
-    public var data: Data
-    public var contentType: String
-    public var storageRef: StorageReference
-    public var completion: ((String?, URL?, Error?) -> Void)
-    
-    
-    public init(_ data: Data, contentType: String, to ref: StorageReference, completion: @escaping ((String?, URL?, Error?) -> Void)) {
-        self.data = data
-        self.contentType = contentType
-        self.storageRef = ref
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        let metadata = StorageMetadata()
-        metadata.contentType = contentType
-        storageRef.putData(data, metadata: metadata) { metadata, error in
-            self.completion(metadata?.name, metadata?.downloadURL(), error)
-        }
-    }
-    
-}
-
-public struct UploadURL<T: State>: Command {
-    
-    public var url: URL
-    public var ref: StorageReference
-    public var completion: ((String?, URL?, Error?) -> Void)
-    
-    public init(_ url: URL, to ref: StorageReference, completion: @escaping ((String?, URL?, Error?) -> Void)) {
-        self.url = url
-        self.ref = ref
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        ref.putFile(from: url, metadata: nil) { metadata, error in
-            self.completion(metadata?.name, metadata?.downloadURL(), error)
-        }
-    }
-    
-}
-
-public struct DeleteStorage<T: State>: Command {
-    
-    public var storageRef: StorageReference
-    public var completion: ((Error?) -> Void)
-    
-    public init(at ref: StorageReference, completion: @escaping ((Error?) -> Void)) {
-        self.storageRef = ref
-        self.completion = completion
-    }
-    
-    public func execute(state: T, core: Core<T>) {
-        storageRef.delete { error in
-            self.completion(error)
-        }
-    }
-    
-}
-
-extension DataSnapshot {
-    
-    var jsonValue: JSONObject? {
-        guard self.exists() && !(self.value is NSNull) else { return nil }
-        if var json = self.value as? JSONObject {
-            json["id"] = self.key
-            return json
-        } else if let value = self.value {
-            return [self.key: value]
+    func execute(state: T, core: Core<T>) {
+        let emailUser: User
+        if let user = user {
+            emailUser = user
         } else {
-            return nil
+            guard let app = app else { return }
+            let auth = Auth.auth(app: app)
+            guard let user = auth.currentUser else { return }
+            emailUser = user
+        }
+        emailUser.sendEmailVerification { error in
+            if let error = error {
+                core.fire(event: EmailVerificationError(error: error))
+            } else {
+                core.fire(event: UserAuthenticationEvent(action: .emailVerificationSent))
+            }
+        }
+    }
+    
+}
+
+/**
+ Authenticates the user with email address and password. If successful, fires an event
+ with the user’s id (`UserLoggedIn`), otherwise fires a failed event with an error
+ (`UserAuthFailed`).
+ 
+ - **email**:    The user’s email address
+ - **password**: The user’s password
+ */
+private struct LogInUser<T: State>: Command {
+    
+    var email: String
+    var password: String
+    var app: FirebaseApp?
+    
+    init(email: String, password: String, app: FirebaseApp?) {
+        self.email = email
+        self.password = password
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        auth.signIn(withEmail: email, password: password) { user, error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+            } else if let user = user {
+                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
+            } else {
+                core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
+            }
+        }
+    }
+    
+}
+
+/**
+ Creates a user with the email address and password.
+ 
+ - **email**:    The user’s email address
+ - **password**: The user’s password
+ - **app**: `FirebaseApp` - the current firebase app
+ - **completion**: Optional closure that takes in the new user's `uid` if possible
+ */
+private struct SignUpUser<T: State>: Command {
+    
+    var email: String
+    var password: String
+    var app: FirebaseApp?
+    var completion: ((String?) -> Void)?
+    
+    init(email: String, password: String, app: FirebaseApp?, completion: ((String?) -> Void)?) {
+        self.email = email
+        self.password = password
+        self.app = app
+        self.completion = completion
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        auth.createUser(withEmail: email, password: password) { user, error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+                self.completion?(nil)
+            } else if let user = user {
+                core.fire(event: UserSignedUp(userId: user.uid, email: self.email))
+                if let completion = self.completion {
+                    completion(user.uid)
+                } else {
+                    core.fire(event: UserLoggedIn(userId: user.uid, email: self.email))
+                }
+            } else {
+                core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.signUpFailedLogIn))
+                self.completion?(nil)
+            }
+        }
+    }
+    
+}
+
+/**
+ Change a user’s password.
+ - **newPassword**:  The new password for the user
+ - **app**: `FirebaseApp` - The current FirebaseApp
+ */
+private struct ChangeUserPassword<T: State>: Command {
+    
+    var newPassword: String
+    var app: FirebaseApp?
+    
+    init(newPassword: String, app: FirebaseApp?) {
+        self.newPassword = newPassword
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        guard let user = auth.currentUser else {
+            core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
+            return
+        }
+        user.updatePassword(to: newPassword) { error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+            } else {
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.passwordChanged))
+            }
+        }
+    }
+    
+}
+
+/**
+ Change a user’s email address.
+ 
+ - **email**: `String` - The new email address for the user
+ - **app**: `FirebaseApp` - The current FirebaseApp
+ */
+private struct ChangeUserEmail<T: State>: Command {
+    
+    var email: String
+    var app: FirebaseApp?
+    
+    init(email: String, app: FirebaseApp?) {
+        self.email = email
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        guard let user = auth.currentUser else {
+            core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.currentUserNotFound))
+            return
+        }
+        user.updateEmail(to: email) { error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+            } else {
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.emailChanged))
+            }
+        }
+    }
+    
+}
+/**
+ Send the user a reset password email.
+ - **email**: The user’s email address
+ - **app**: `FirebaseApp` - The current FirebaseApp
+ */
+private struct ResetPassword<T: State>: Command {
+    
+    var email: String
+    var app: FirebaseApp?
+    
+    init(email: String, app: FirebaseApp? = FirebaseApp.app()) {
+        self.email = email
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        auth.sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+            } else {
+                core.fire(event: UserAuthenticationEvent(action: FirebaseAuthenticationAction.passwordReset))
+            }
+        }
+    }
+    
+}
+
+/// Unauthenticates the current user and fires a `UserLoggedOut` event.
+/// - **app**: `FirebaseApp` - The current FirebaseApp
+private struct LogOutUser<T: State>: Command {
+    
+    var app: FirebaseApp?
+    
+    init(app: FirebaseApp? = FirebaseApp.app()) {
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        do {
+            guard let app = app else { return }
+            let auth = Auth.auth(app: app)
+            try auth.signOut()
+            core.fire(event: UserLoggedOut())
+        } catch {
+            core.fire(event: UserAuthFailed(error: error))
         }
     }
     
