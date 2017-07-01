@@ -32,7 +32,7 @@ public protocol FirebaseReactorAccess {
     func stopMonitoringConnection<T: State>(core: Core<T>)
     func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
     func upload<T: State>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
-    func delete<T: State>(at storageRef: StorageReference, core: Core<T>, completion: @escaping (Error?) -> Void)
+    func delete<T: State>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void)
 
     // MARK: Overridable authentication functions
 
@@ -107,7 +107,8 @@ public extension FirebaseReactorAccess {
      core.fire(command: UploadURL(url, to: storageRef, completion: completion))
     }
     
-    func delete<T: State>(at storageRef: StorageReference, core: Core<T>, completion: @escaping (Error?) -> Void) {
+    func delete<T: State>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void) {
+        guard let storageRef = storageRef else { completion(nil); return }
         core.fire(command: DeleteStorage(at: storageRef, completion: completion))
     }
     
