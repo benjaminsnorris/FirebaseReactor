@@ -78,7 +78,7 @@ public extension SubscribingState {
      constructed from the base `ref` using `childByAppendingPath(_)` or other
      `FQuery` functions.
      */
-    public func subscribeToObjects<T: State>(_ query: DatabaseQuery, core: Core<T>) {
+    public func subscribeToObjects<T>(_ query: DatabaseQuery, core: Core<T>) {
         if !self.isSubscribed {
             let idKey = "id"
             let refKey = "ref"
@@ -153,7 +153,7 @@ public extension SubscribingState {
      
      - Parameter query: The query that was originally used to subscribe to events.
      */
-    public func removeSubscriptions<T: State>(_ query: DatabaseQuery, core: Core<T>) {
+    public func removeSubscriptions<T>(_ query: DatabaseQuery, core: Core<T>) {
         if self.isSubscribed {
             query.removeAllObservers()
             core.fire(event: ObjectSubscribed(subscribed: false, state: self))

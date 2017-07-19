@@ -17,35 +17,35 @@ public protocol FirebaseReactorAccess {
     var currentApp: FirebaseApp? { get }
     
     func newObjectId() -> String
-    func createObject<T: State>(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject, core: Core<T>)
+    func createObject<T>(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject, core: Core<T>)
     
-    func updateObject<T: State>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
-    func updateObjectDirectly<T: State>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
-    func removeObject<T: State>(at ref: DatabaseReference, core: Core<T>)
-    func getObject<T: State>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void)
-    func observeObject<T: State>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void)
+    func updateObject<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
+    func updateObjectDirectly<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
+    func removeObject<T>(at ref: DatabaseReference, core: Core<T>)
+    func getObject<T>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void)
+    func observeObject<T>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void)
     
-    func stopObservingObject<T: State>(at objectRef: DatabaseReference, core: Core<T>)
-    func search<T: State>(with baseQuery: DatabaseQuery, key: String, value: String, core: Core<T>, completion: @escaping (_ json: JSONObject?) -> Void)
+    func stopObservingObject<T>(at objectRef: DatabaseReference, core: Core<T>)
+    func search<T>(with baseQuery: DatabaseQuery, key: String, value: String, core: Core<T>, completion: @escaping (_ json: JSONObject?) -> Void)
     
-    func monitorConnection<T: State>(core: Core<T>)
-    func stopMonitoringConnection<T: State>(core: Core<T>)
-    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
-    func upload<T: State>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
-    func delete<T: State>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void)
+    func monitorConnection<T>(core: Core<T>)
+    func stopMonitoringConnection<T>(core: Core<T>)
+    func upload<T>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
+    func upload<T>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void)
+    func delete<T>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void)
 
     // MARK: Overridable authentication functions
 
     func getUserId() -> String?
     func getUserEmailVerified() -> Bool
-    func sendEmailVerification<T: State>(to user: User?, app: FirebaseApp?, core: Core<T>)
-    func reloadCurrentUser<T: State>(core: Core<T>)
-    func logInUser<T: State>(with email: String, and password: String, core: Core<T>)
-    func signUpUser<T: State>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?)
-    func changeUserPassword<T: State>(to newPassword: String, core: Core<T>)
-    func changeUserEmail<T: State>(to email: String, core: Core<T>)
-    func resetPassword<T: State>(for email: String, app: FirebaseApp?, core: Core<T>)
-    func logOutUser<T: State>(core: Core<T>)
+    func sendEmailVerification<T>(to user: User?, app: FirebaseApp?, core: Core<T>)
+    func reloadCurrentUser<T>(core: Core<T>)
+    func logInUser<T>(with email: String, and password: String, core: Core<T>)
+    func signUpUser<T>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?)
+    func changeUserPassword<T>(to newPassword: String, core: Core<T>)
+    func changeUserEmail<T>(to email: String, core: Core<T>)
+    func resetPassword<T>(for email: String, app: FirebaseApp?, core: Core<T>)
+    func logOutUser<T>(core: Core<T>)
 }
 
 
@@ -57,57 +57,57 @@ public extension FirebaseReactorAccess {
         return ref.childByAutoId().key
     }
     
-    public func createObject<T: State>(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject, core: Core<T>) {
+    public func createObject<T>(at ref: DatabaseReference, createNewChildId: Bool, removeId: Bool, parameters: JSONObject, core: Core<T>) {
         core.fire(command: CreateObject(at: ref, createNewChildId: createNewChildId, removeId: removeId, parameters: parameters))
     }
     
-    public func updateObject<T: State>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>) {
+    public func updateObject<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>) {
         core.fire(command: UpdateObject(at: ref, parameters: parameters))
     }
 
-    func updateObjectDirectly<T: State>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>) {
+    func updateObjectDirectly<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>) {
         core.fire(command: UpdateObjectDirectly(at: ref, parameters: parameters))
     }
     
-    func removeObject<T: State>(at ref: DatabaseReference, core: Core<T>) {
+    func removeObject<T>(at ref: DatabaseReference, core: Core<T>) {
         core.fire(command: RemoveObject(at: ref))
     }
     
-    func getObject<T: State>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
+    func getObject<T>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
         core.fire(command: GetObject(at: objectRef, completion: completion))
     }
     
-    func observeObject<T: State>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
+    func observeObject<T>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
         core.fire(command: ObserveObject(at: objectRef, completion: completion))
     }
     
-    func stopObservingObject<T: State>(at objectRef: DatabaseReference, core: Core<T>) {
+    func stopObservingObject<T>(at objectRef: DatabaseReference, core: Core<T>) {
         core.fire(command: StopObservingObject(at: objectRef))
     }
     
-    func search<T: State>(with baseQuery: DatabaseQuery, key: String, value: String, core: Core<T>, completion: @escaping (_ json: JSONObject?) -> Void) {
+    func search<T>(with baseQuery: DatabaseQuery, key: String, value: String, core: Core<T>, completion: @escaping (_ json: JSONObject?) -> Void) {
         core.fire(command: Search(with: baseQuery, key: key, value: value, completion: completion))
     }
     
-    func monitorConnection<T: State>(core: Core<T>) {
+    func monitorConnection<T>(core: Core<T>) {
         core.fire(command: MonitorConnection(rootRef: ref))
     }
     
-    func stopMonitoringConnection<T: State>(core: Core<T>) {
+    func stopMonitoringConnection<T>(core: Core<T>) {
         core.fire(command: StopMonitorConnection(rootRef: ref))
     }
     
-    func upload<T: State>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+    func upload<T>(_ data: Data, contentType: String, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
         guard let storageRef = storageRef else { completion(nil, nil, nil); return }
         core.fire(command: UploadData(data, contentType: contentType, to: storageRef, completion: completion))
     }
     
-    func upload<T: State>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
+    func upload<T>(from url: URL, to storageRef: StorageReference?, core: Core<T>, completion: @escaping (String?, URL?, Error?) -> Void) {
         guard let storageRef = storageRef else { completion(nil, nil, nil); return }
      core.fire(command: UploadURL(url, to: storageRef, completion: completion))
     }
     
-    func delete<T: State>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void) {
+    func delete<T>(at storageRef: StorageReference?, core: Core<T>, completion: @escaping (Error?) -> Void) {
         guard let storageRef = storageRef else { completion(nil); return }
         core.fire(command: DeleteStorage(at: storageRef, completion: completion))
     }
@@ -409,37 +409,37 @@ public extension FirebaseReactorAccess {
         return user.isEmailVerified
     }
     
-    func sendEmailVerification<T: State>(to user: User?, app: FirebaseApp?, core: Core<T>) {
+    func sendEmailVerification<T>(to user: User?, app: FirebaseApp?, core: Core<T>) {
         let app = app ?? currentApp
         core.fire(command: SendEmailVerification(for: user, app: app))
     }
     
-    func reloadCurrentUser<T: State>(core: Core<T>) {
+    func reloadCurrentUser<T>(core: Core<T>) {
         core.fire(command: ReloadCurrentUser(app: currentApp))
     }
     
-    func logInUser<T: State>(with email: String, and password: String, core: Core<T>) {
+    func logInUser<T>(with email: String, and password: String, core: Core<T>) {
         core.fire(command: LogInUser(email: email, password: password, app: currentApp))
     }
     
-    func signUpUser<T: State>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?) {
+    func signUpUser<T>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?) {
         core.fire(command: SignUpUser(email: email, password: password, app: currentApp, completion: completion))
     }
     
-    func changeUserPassword<T: State>(to newPassword: String, core: Core<T>) {
+    func changeUserPassword<T>(to newPassword: String, core: Core<T>) {
         core.fire(command: ChangeUserPassword(newPassword: newPassword, app: currentApp))
     }
     
-    func changeUserEmail<T: State>(to email: String, core: Core<T>) {
+    func changeUserEmail<T>(to email: String, core: Core<T>) {
         core.fire(command: ChangeUserEmail(email: email, app: currentApp))
     }
     
-    func resetPassword<T: State>(for email: String, app: FirebaseApp?, core: Core<T>) {
+    func resetPassword<T>(for email: String, app: FirebaseApp?, core: Core<T>) {
         let app = app ?? currentApp
         core.fire(command: ResetPassword(email: email, app: app))
     }
     
-    func logOutUser<T: State>(core: Core<T>) {
+    func logOutUser<T>(core: Core<T>) {
         core.fire(command: LogOutUser(app: currentApp))
     }
     
