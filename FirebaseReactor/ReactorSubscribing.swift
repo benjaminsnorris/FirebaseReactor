@@ -156,7 +156,7 @@ public extension SubscribingState {
     public func removeSubscriptions<T: State>(_ query: DatabaseQuery, core: Core<T>) {
         if self.isSubscribed {
             query.removeAllObservers()
-            core.fire(event: ObjectSubscribed(subscribed: false, state: core.state))
+            core.fire(event: ObjectSubscribed(subscribed: false, state: self))
         }
     }
     
