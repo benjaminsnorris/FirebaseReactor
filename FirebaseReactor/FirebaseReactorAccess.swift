@@ -231,8 +231,8 @@ private struct ObserveObject<T: State>: Command {
     func execute(state: T, core: Core<T>) {
         ref.observe(.value, with: { snapshot in
             self.completion(snapshot.jsonValue)
-            core.fire(event: ObjectObserved(path: self.ref.description(), observed: true))
         })
+        core.fire(event: ObjectObserved(path: self.ref.description(), observed: true))
     }
     
 }
