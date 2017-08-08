@@ -22,7 +22,7 @@ public protocol FirebaseReactorAccess {
     func updateObject<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
     func updateObjectDirectly<T>(at ref: DatabaseReference, parameters: JSONObject, core: Core<T>)
     func removeObject<T>(at ref: DatabaseReference, core: Core<T>)
-    func getObject<T>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void)
+    func getObject<T>(at objectQuery: DatabaseQuery, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void)
     func observeObject<T>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void)
     
     func stopObservingObject<T>(at objectRef: DatabaseReference, core: Core<T>)
@@ -73,7 +73,7 @@ public extension FirebaseReactorAccess {
         core.fire(command: RemoveObject(at: ref))
     }
     
-    func getObject<T>(at objectRef: DatabaseReference, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
+    func getObject<T>(at objectRef: DatabaseQuery, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void) {
         core.fire(command: GetObject(at: objectRef, completion: completion))
     }
     
@@ -202,16 +202,16 @@ private struct RemoveObject<T: State>: Command {
 
 private struct GetObject<T: State>: Command {
     
-    var ref: DatabaseReference
+    var query: DatabaseQuery
     var completion: ((JSONObject?) -> Void)
     
-    init(at ref: DatabaseReference, completion: @escaping ((JSONObject?) -> Void)) {
-        self.ref = ref
+    init(at query: DatabaseQuery, completion: @escaping ((JSONObject?) -> Void)) {
+        self.query = query
         self.completion = completion
     }
     
     func execute(state: T, core: Core<T>) {
-        ref.observeSingleEvent(of: .value) { snapshot in
+        query.observeSingleEvent(of: .value) { snapshot in
             self.completion(snapshot.jsonValue)
         }
     }
