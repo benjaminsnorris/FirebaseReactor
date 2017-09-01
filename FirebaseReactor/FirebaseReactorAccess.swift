@@ -41,6 +41,7 @@ public protocol FirebaseReactorAccess {
     func sendEmailVerification<T>(to user: User?, app: FirebaseApp?, core: Core<T>)
     func reloadCurrentUser<T>(core: Core<T>)
     func logInUser<T>(with email: String, and password: String, core: Core<T>)
+    func logInUser<T>(with token: String, core: Core<T>)
     func signUpUser<T>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?)
     func changeUserPassword<T>(to newPassword: String, core: Core<T>)
     func changeUserEmail<T>(to email: String, core: Core<T>)
@@ -422,6 +423,10 @@ public extension FirebaseReactorAccess {
         core.fire(command: LogInUser(email: email, password: password, app: currentApp))
     }
     
+    func logInUser<T>(with token: String, core: Core<T>) {
+        core.fire(command: LogInWithCustomToken(token, app: currentApp))
+    }
+    
     func signUpUser<T>(with email: String, and password: String, core: Core<T>, completion: ((_ userId: String?) -> Void)?) {
         core.fire(command: SignUpUser(email: email, password: password, app: currentApp, completion: completion))
     }
@@ -539,6 +544,39 @@ private struct LogInUser<T: State>: Command {
         }
     }
     
+}
+
+/**
+ Authenticates the user with the custom token. If successful, fires and event with
+ the user‘s id (`UserLoggedIn`), otherwise fires a failed event with an error
+ (`UserAuthFailed`).
+ 
+ - **token**:   The custom token
+ */
+private struct LogInWithCustomToken<T: State>: Command {
+    
+    var token: String
+    var app: FirebaseApp?
+    
+    init(_ token: String, app: FirebaseApp?) {
+        self.token = token
+        self.app = app
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        guard let app = app else { return }
+        let auth = Auth.auth(app: app)
+        auth.signIn(withCustomToken: token) { user, error in
+            if let error = error {
+                core.fire(event: UserAuthFailed(error: error))
+            } else if let user = user {
+                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
+            } else {
+                core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
+            }
+        }
+    }
+
 }
 
 /**
