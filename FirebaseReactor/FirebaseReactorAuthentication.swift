@@ -53,9 +53,9 @@ public enum FirebaseAuthenticationAction {
 public struct UserLoggedIn: FirebaseAuthenticationEvent {
     public var userId: String
     public var emailVerified: Bool
-    public var email: String
+    public var email: String?
     
-    public init(userId: String, emailVerified: Bool = false, email: String) {
+    public init(userId: String, emailVerified: Bool = false, email: String?) {
         self.userId = userId
         self.emailVerified = emailVerified
         self.email = email

@@ -537,7 +537,7 @@ private struct LogInUser<T: State>: Command {
             if let error = error {
                 core.fire(event: UserAuthFailed(error: error))
             } else if let user = user {
-                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
+                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: user.email))
             } else {
                 core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
             }
@@ -570,7 +570,7 @@ private struct LogInWithCustomToken<T: State>: Command {
             if let error = error {
                 core.fire(event: UserAuthFailed(error: error))
             } else if let user = user {
-                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: self.email))
+                core.fire(event: UserLoggedIn(userId: user.uid, emailVerified: user.isEmailVerified, email: user.email))
             } else {
                 core.fire(event: UserAuthFailed(error: FirebaseAuthenticationError.logInMissingUserId))
             }
