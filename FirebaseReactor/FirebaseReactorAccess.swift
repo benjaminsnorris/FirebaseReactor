@@ -24,7 +24,8 @@ public protocol FirebaseReactorAccess {
     func removeObject<T>(at ref: DatabaseReference, core: Core<T>)
     func getObject<T>(at objectQuery: DatabaseQuery, core: Core<T>, completion: @escaping (_ objectJSON: JSONObject?) -> Void)
     func observeObject<T>(at objectRef: DatabaseReference, core: Core<T>, _ completion: @escaping (_ objectJSON: JSONObject?) -> Void)
-    
+    func retrieveObject<T, U: Unmarshaling>(at objectQuery: DatabaseQuery, core: Core<T>) -> U?
+
     func stopObservingObject<T>(at objectRef: DatabaseReference, core: Core<T>)
     func search<T>(with baseQuery: DatabaseQuery, key: String, value: String, core: Core<T>, completion: @escaping (_ json: JSONObject?) -> Void)
     
@@ -83,6 +84,11 @@ public extension FirebaseReactorAccess {
         core.fire(command: ObserveObject(at: objectRef, completion: completion))
     }
     
+    func retrieveObject<T, U: Unmarshaling>(at objectQuery: DatabaseQuery, core: Core<T>) -> U? {
+        core.fire(command: RetrieveObject(at: objectQuery, objectType: U.self))
+        return nil
+    }
+
     func stopObservingObject<T>(at objectRef: DatabaseReference, core: Core<T>) {
         core.fire(command: StopObservingObject(at: objectRef))
     }
@@ -250,6 +256,28 @@ private struct StopObservingObject<T: State>: Command {
     func execute(state: T, core: Core<T>) {
         ref.removeAllObservers()
         core.fire(event: ObjectObserved(path: ref.description(), observed: false))
+    }
+    
+}
+
+private struct RetrieveObject<T: State, U: Unmarshaling>: Command {
+    
+    var query: DatabaseQuery
+    
+    init(at query: DatabaseQuery, objectType: U.Type) {
+        self.query = query
+    }
+    
+    func execute(state: T, core: Core<T>) {
+        core.fire(command: GetObject(at: query) { json in
+            guard let json = json else { return }
+            do {
+                let object = try U(object: json)
+                core.fire(event: ObjectAdded(object: object))
+            } catch {
+                core.fire(event: ObjectErrored<U>(error: error))
+            }
+        })
     }
     
 }
