@@ -38,6 +38,7 @@ public protocol FirebaseReactorAccess {
 
     func getUserId() -> String?
     func getUserEmailVerified() -> Bool
+    func getUserToken(completion: @escaping (_ token: String?, _ error: Error?) -> Void)
     func sendEmailVerification<T>(to user: User?, app: FirebaseApp?, core: Core<T>)
     func reloadCurrentUser<T>(core: Core<T>)
     func logInUser<T>(with email: String, and password: String, core: Core<T>)
@@ -410,6 +411,13 @@ public extension FirebaseReactorAccess {
         return user.isEmailVerified
     }
     
+    func getUserToken(completion: @escaping (_ token: String?, _ error: Error?) -> Void) {
+        guard let currentApp = currentApp else { completion(nil, nil); return }
+        let auth = Auth.auth(app: currentApp)
+        guard let user = auth.currentUser else { completion(nil, nil); return }
+        user.getIDToken(completion: completion)
+    }
+
     func sendEmailVerification<T>(to user: User?, app: FirebaseApp?, core: Core<T>) {
         let app = app ?? currentApp
         core.fire(command: SendEmailVerification(for: user, app: app))
