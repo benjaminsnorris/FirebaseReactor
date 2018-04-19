@@ -7,7 +7,6 @@
 //
 
 import XCTest
-@testable import FirebaseReactor
 
 class FirebaseReactorTests: XCTestCase {
     

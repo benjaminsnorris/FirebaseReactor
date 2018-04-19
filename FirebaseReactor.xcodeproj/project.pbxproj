@@ -29,7 +29,6 @@
 		70906A97208936B100BF5831 /* FirebaseReactorAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A92208936B100BF5831 /* FirebaseReactorAccess.swift */; };
 		70906A98208936B100BF5831 /* ReactorSubscribing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A93208936B100BF5831 /* ReactorSubscribing.swift */; };
 		70906A99208936B100BF5831 /* FirebaseReactorAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A94208936B100BF5831 /* FirebaseReactorAuthentication.swift */; };
-		70906A9A2089371E00BF5831 /* Firebase.h in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF851ECD05D800ACD67B /* Firebase.h */; };
 		70906A9D2089371E00BF5831 /* leveldb-library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70906A9B2089371E00BF5831 /* leveldb-library.framework */; };
 		70906A9E2089371E00BF5831 /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70906A9C2089371E00BF5831 /* nanopb.framework */; };
 /* End PBXBuildFile section */
@@ -85,7 +84,6 @@
 				7059EF701ECD03BB00ACD67B /* Reactor.framework in Frameworks */,
 				70906A9D2089371E00BF5831 /* leveldb-library.framework in Frameworks */,
 				70906A9E2089371E00BF5831 /* nanopb.framework in Frameworks */,
-				70906A9A2089371E00BF5831 /* Firebase.h in Frameworks */,
 				7059EF7B1ECD05C600ACD67B /* FirebaseAnalytics.framework in Frameworks */,
 				7059EF7C1ECD05C600ACD67B /* FirebaseAuth.framework in Frameworks */,
 				7059EF7D1ECD05C600ACD67B /* FirebaseCore.framework in Frameworks */,
