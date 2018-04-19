@@ -10,7 +10,6 @@
 		7059EF521ECD00BC00ACD67B /* FirebaseReactor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF481ECD00BC00ACD67B /* FirebaseReactor.framework */; };
 		7059EF571ECD00BC00ACD67B /* FirebaseReactorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7059EF561ECD00BC00ACD67B /* FirebaseReactorTests.swift */; };
 		7059EF591ECD00BC00ACD67B /* FirebaseReactor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7059EF4B1ECD00BC00ACD67B /* FirebaseReactor.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		7059EF6B1ECD02BE00ACD67B /* FirebaseAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7059EF6A1ECD02BE00ACD67B /* FirebaseAccess.swift */; };
 		7059EF6F1ECD03BB00ACD67B /* Marshal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF6D1ECD03BB00ACD67B /* Marshal.framework */; };
 		7059EF701ECD03BB00ACD67B /* Reactor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF6E1ECD03BB00ACD67B /* Reactor.framework */; };
 		7059EF7B1ECD05C600ACD67B /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF711ECD05C600ACD67B /* FirebaseAnalytics.framework */; };
@@ -25,6 +24,14 @@
 		7059EF841ECD05C600ACD67B /* GTMSessionFetcher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF7A1ECD05C600ACD67B /* GTMSessionFetcher.framework */; };
 		7059EF861ECD05D800ACD67B /* Firebase.h in Headers */ = {isa = PBXBuildFile; fileRef = 7059EF851ECD05D800ACD67B /* Firebase.h */; };
 		7059EF891ECD068B00ACD67B /* libicucore.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF881ECD068B00ACD67B /* libicucore.tbd */; };
+		70906A95208936B100BF5831 /* Firebase+Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A90208936B100BF5831 /* Firebase+Random.swift */; };
+		70906A96208936B100BF5831 /* GenericEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A91208936B100BF5831 /* GenericEvents.swift */; };
+		70906A97208936B100BF5831 /* FirebaseReactorAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A92208936B100BF5831 /* FirebaseReactorAccess.swift */; };
+		70906A98208936B100BF5831 /* ReactorSubscribing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A93208936B100BF5831 /* ReactorSubscribing.swift */; };
+		70906A99208936B100BF5831 /* FirebaseReactorAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70906A94208936B100BF5831 /* FirebaseReactorAuthentication.swift */; };
+		70906A9A2089371E00BF5831 /* Firebase.h in Frameworks */ = {isa = PBXBuildFile; fileRef = 7059EF851ECD05D800ACD67B /* Firebase.h */; };
+		70906A9D2089371E00BF5831 /* leveldb-library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70906A9B2089371E00BF5831 /* leveldb-library.framework */; };
+		70906A9E2089371E00BF5831 /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70906A9C2089371E00BF5831 /* nanopb.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,7 +51,6 @@
 		7059EF511ECD00BC00ACD67B /* FirebaseReactorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FirebaseReactorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7059EF561ECD00BC00ACD67B /* FirebaseReactorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseReactorTests.swift; sourceTree = "<group>"; };
 		7059EF581ECD00BC00ACD67B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7059EF6A1ECD02BE00ACD67B /* FirebaseAccess.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirebaseAccess.swift; sourceTree = "<group>"; };
 		7059EF6D1ECD03BB00ACD67B /* Marshal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Marshal.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7059EF6E1ECD03BB00ACD67B /* Reactor.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Reactor.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7059EF711ECD05C600ACD67B /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = Vendor/Firebase/FirebaseAnalytics.framework; sourceTree = "<group>"; };
@@ -60,6 +66,13 @@
 		7059EF851ECD05D800ACD67B /* Firebase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Firebase.h; path = Vendor/Firebase/Firebase.h; sourceTree = "<group>"; };
 		7059EF871ECD05EF00ACD67B /* FirebaseReactor.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = FirebaseReactor.modulemap; path = Vendor/Firebase/FirebaseReactor.modulemap; sourceTree = SOURCE_ROOT; };
 		7059EF881ECD068B00ACD67B /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = usr/lib/libicucore.tbd; sourceTree = SDKROOT; };
+		70906A90208936B100BF5831 /* Firebase+Random.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Firebase+Random.swift"; sourceTree = "<group>"; };
+		70906A91208936B100BF5831 /* GenericEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericEvents.swift; sourceTree = "<group>"; };
+		70906A92208936B100BF5831 /* FirebaseReactorAccess.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirebaseReactorAccess.swift; sourceTree = "<group>"; };
+		70906A93208936B100BF5831 /* ReactorSubscribing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReactorSubscribing.swift; sourceTree = "<group>"; };
+		70906A94208936B100BF5831 /* FirebaseReactorAuthentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirebaseReactorAuthentication.swift; sourceTree = "<group>"; };
+		70906A9B2089371E00BF5831 /* leveldb-library.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "leveldb-library.framework"; path = "Vendor/Firebase/leveldb-library.framework"; sourceTree = "<group>"; };
+		70906A9C2089371E00BF5831 /* nanopb.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = nanopb.framework; path = Vendor/Firebase/nanopb.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +83,9 @@
 				7059EF891ECD068B00ACD67B /* libicucore.tbd in Frameworks */,
 				7059EF6F1ECD03BB00ACD67B /* Marshal.framework in Frameworks */,
 				7059EF701ECD03BB00ACD67B /* Reactor.framework in Frameworks */,
+				70906A9D2089371E00BF5831 /* leveldb-library.framework in Frameworks */,
+				70906A9E2089371E00BF5831 /* nanopb.framework in Frameworks */,
+				70906A9A2089371E00BF5831 /* Firebase.h in Frameworks */,
 				7059EF7B1ECD05C600ACD67B /* FirebaseAnalytics.framework in Frameworks */,
 				7059EF7C1ECD05C600ACD67B /* FirebaseAuth.framework in Frameworks */,
 				7059EF7D1ECD05C600ACD67B /* FirebaseCore.framework in Frameworks */,
@@ -143,7 +159,11 @@
 		7059EF691ECD02B200ACD67B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				7059EF6A1ECD02BE00ACD67B /* FirebaseAccess.swift */,
+				70906A90208936B100BF5831 /* Firebase+Random.swift */,
+				70906A92208936B100BF5831 /* FirebaseReactorAccess.swift */,
+				70906A94208936B100BF5831 /* FirebaseReactorAuthentication.swift */,
+				70906A91208936B100BF5831 /* GenericEvents.swift */,
+				70906A93208936B100BF5831 /* ReactorSubscribing.swift */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -151,6 +171,8 @@
 		7059EF6C1ECD03BB00ACD67B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				70906A9B2089371E00BF5831 /* leveldb-library.framework */,
+				70906A9C2089371E00BF5831 /* nanopb.framework */,
 				7059EF881ECD068B00ACD67B /* libicucore.tbd */,
 				7059EF851ECD05D800ACD67B /* Firebase.h */,
 				7059EF871ECD05EF00ACD67B /* FirebaseReactor.modulemap */,
@@ -284,7 +306,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7059EF6B1ECD02BE00ACD67B /* FirebaseAccess.swift in Sources */,
+				70906A97208936B100BF5831 /* FirebaseReactorAccess.swift in Sources */,
+				70906A96208936B100BF5831 /* GenericEvents.swift in Sources */,
+				70906A98208936B100BF5831 /* ReactorSubscribing.swift in Sources */,
+				70906A95208936B100BF5831 /* Firebase+Random.swift in Sources */,
+				70906A99208936B100BF5831 /* FirebaseReactorAuthentication.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
